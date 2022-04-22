@@ -1,4 +1,4 @@
-package com.example.mylapp
+package com.mylapp
 
 import io.flutter.embedding.android.FlutterActivity
 
