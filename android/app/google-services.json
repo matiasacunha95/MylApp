@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "309129390018",
+    "project_id": "mylapp-53567",
+    "storage_bucket": "mylapp-53567.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309129390018:android:dec8fcf6887ffe2893185b",
+        "android_client_info": {
+          "package_name": "com.mylapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "309129390018-h7diquruu4afo2mt28fgg5lvqgltu5jg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfCiYtLBU4TehdMDiEXkw9NK2MEM51eMg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "309129390018-h7diquruu4afo2mt28fgg5lvqgltu5jg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
