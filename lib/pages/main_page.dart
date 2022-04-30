@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mylapp/pages/cards_page.dart';
+import 'package:mylapp/preferences/user_preferences.dart';
 import 'package:mylapp/widgets/appbar.dart';
 
 class MainPage extends StatefulWidget {
@@ -11,6 +14,23 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  @override
+  void initState() {
+    final UserPreferences preferences = UserPreferences();
+    if (preferences.jwt == '') {
+      String randomUser = getRandom(64);
+      preferences.jwt = randomUser;
+    }
+    super.initState();
+  }
+
+  String getRandom(int length) {
+    const characters = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
+    Random random = Random.secure();
+    return String.fromCharCodes(Iterable.generate(length,
+        (_) => characters.codeUnitAt(random.nextInt(characters.length))));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,13 +59,6 @@ class _MainPageState extends State<MainPage> {
                         .map((edition) => _editionTile(edition, context))
                         .toList(),
                   ),
-                  // ListView.builder(
-                  //     padding: const EdgeInsets.all(8),
-                  //     itemCount: snapshot.data?.docs.length,
-                  //     itemBuilder: (BuildContext context, int index) {
-                  //       return _editionTile(
-                  //           snapshot.data?.docs, index, context);
-                  //     }),
                 );
               } else {
                 return Padding(
@@ -68,11 +81,12 @@ class _MainPageState extends State<MainPage> {
             context,
             MaterialPageRoute(
                 builder: (context) => CardsPage(
-                    editionId: edition['slug'], title: edition['title'])),
+                    editionId: edition['slug'],
+                    title: edition['title'],
+                    total: edition['total'])),
           );
         },
         child: Card(
-          color: Colors.white,
           elevation: 10,
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.15,

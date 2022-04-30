@@ -2293,25 +2293,23 @@ class SenderProvider {
 
   addUrl() {
     for (var item in x) {
-      races
-          .doc(item['edid'])
-          .set({
-            'id': item['id'],
-            'edid': item['edid'],
-            'slug': item['slug'],
-            'name': item['name'],
-            'race': item['race'],
-            'keywords': item['keywords'],
-            'type': item['type'],
-            'cost': item['cost'],
-            'damage': item['damage'],
-            'ability': item['ability'],
-            'flavour': item['flavour'],
-            'ed_edid': item['ed_edid'],
-            'ed_slug': item['ed_slug'],
-          })
-          .then((value) => print("Url Added"))
-          .catchError((error) => print("Failed to add Url: $error"));
+      races.doc(item['edid']).set({
+        'id': item['id'],
+        'edid': item['edid'],
+        'slug': item['slug'],
+        'name': item['name'],
+        'race': item['race'],
+        'keywords': item['keywords'],
+        'type': item['type'],
+        'cost': item['cost'],
+        'damage': item['damage'],
+        'ability': item['ability'],
+        'flavour': item['flavour'],
+        'ed_edid': item['ed_edid'],
+        'ed_slug': item['ed_slug'],
+      });
+      // .then((value) => print("Url Added"))
+      // .catchError((error) => print("Failed to add Url: $error"));
     }
   }
 }
