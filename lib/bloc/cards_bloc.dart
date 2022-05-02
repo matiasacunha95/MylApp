@@ -13,14 +13,21 @@ class CardsListBloc {
   Stream<List<DocumentSnapshot>> get foodsStream => cardsController.stream;
 
 /*This method will automatically fetch first 10 elements from the document list */
-  Future fetchFirstList(edition) async {
+  Future fetchFirstList(edition, title) async {
     try {
-      documentList = (await FirebaseFirestore.instance
-              .collection(edition)
-              .orderBy('edid')
-              .limit(18)
-              .get())
-          .docs;
+      documentList = title != ''
+          ? (await FirebaseFirestore.instance
+                  .collection(edition)
+                  .where('name', isEqualTo: title)
+                  .limit(18)
+                  .get())
+              .docs
+          : (await FirebaseFirestore.instance
+                  .collection(edition)
+                  .orderBy('edid')
+                  .limit(18)
+                  .get())
+              .docs;
       cardsController.sink.add(documentList);
     } on SocketException {
       cardsController.sink

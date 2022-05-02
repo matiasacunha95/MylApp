@@ -6,6 +6,7 @@ import 'package:mylapp/bloc/cards_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mylapp/pages/card_detail_page.dart';
 import 'package:mylapp/preferences/user_preferences.dart';
+import 'package:mylapp/search/search_delegate.dart';
 import 'package:mylapp/services/cards_handler.dart';
 import 'package:mylapp/widgets/scroll_to_top.dart';
 
@@ -25,11 +26,12 @@ class _CardsPageState extends State<CardsPage> {
   CardsListBloc cardsListBloc = CardsListBloc();
   List<QueryDocumentSnapshot> cards = [];
   final UserPreferences userPreferences = UserPreferences();
+  late String titleSearch;
 
   @override
   void initState() {
     super.initState();
-    cardsListBloc.fetchFirstList(widget.editionId);
+    cardsListBloc.fetchFirstList(widget.editionId, '');
 
     scrollController.addListener(_scrollListener);
   }
@@ -48,13 +50,57 @@ class _CardsPageState extends State<CardsPage> {
             centerTitle: true,
             actions: [
               IconButton(
-                onPressed: () {},
+                onPressed: () => showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context) => AlertDialog(
+                    title: const Center(
+                        child: Text('Información',
+                            style: TextStyle(
+                                color: Color.fromRGBO(106, 137, 118, 1)))),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        ListTile(
+                          leading: Icon(Icons.bookmark_add_outlined),
+                          title: Text('Para agregar la carta a tu colección'),
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.remove_red_eye),
+                          title: Text('Para ver la carta en detalle'),
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.bookmark_added),
+                          title: Text('Para quitar la carta de tu colección'),
+                        )
+                      ],
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, 'OK'),
+                        child: const Text(
+                          'OK',
+                          style: TextStyle(
+                              color: Color.fromRGBO(106, 137, 118, 1)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 icon: const Icon(Icons.info_rounded, color: Colors.white),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () async {
+                  var newTitle = await showSearch(
+                      context: context,
+                      delegate: CardsSearchDelegate(
+                          collectionName: widget.editionId,
+                          title: widget.title));
+                  if (newTitle != '') {
+                    cardsListBloc.fetchFirstList(widget.editionId, newTitle);
+                  }
+                },
                 icon: const Icon(
-                  FontAwesomeIcons.filter,
+                  FontAwesomeIcons.search,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -74,7 +120,7 @@ class _CardsPageState extends State<CardsPage> {
         floatingActionButton: ButtonToTop(scrollController: scrollController),
         body: RefreshIndicator(
           onRefresh: () async {
-            cardsListBloc.fetchFirstList(widget.editionId);
+            cardsListBloc.fetchFirstList(widget.editionId, '');
           },
           child: StreamBuilder<List<DocumentSnapshot>>(
               stream: cardsListBloc.foodsStream,
@@ -126,84 +172,70 @@ class _CardsPageState extends State<CardsPage> {
             if (snapshot.hasData) {
               var thisCollection =
                   snapshot.data!.docs.where((s) => s['ref'] == card['id']);
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.16,
-                    width: MediaQuery.of(context).size.width * 0.16,
-                    child: Center(
-                      child: Hero(
-                        tag: card['id'],
-                        child: Opacity(
-                          opacity: thisCollection.isNotEmpty ? 1 : 0.5,
-                          child: FadeInImage(
-                            placeholder: const NetworkImage(
-                                'https://api.myl.cl/static/loading_02_f_opt.gif'),
-                            image: NetworkImage(
-                                'https://api.myl.cl/static/cards/${card['ed_edid']}/${card['edid']}.png'),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconButton(
-                          onPressed: () {
-                            CardsHandler cardsHandler = CardsHandler();
-                            thisCollection.isNotEmpty
-                                ? cardsHandler.deleteCard(card['id'])
-                                : cardsHandler.addCard(
-                                    card['id'], widget.title);
-                          },
-                          icon: thisCollection.isNotEmpty
-                              ? const Icon(Icons.bookmark_added,
-                                  color: Colors.green, size: 30)
-                              : const Icon(
-                                  Icons.bookmark_border,
-                                  color: Colors.grey,
-                                  size: 30,
-                                )),
-                      IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CardDetailPage(
-                                    card: card,
-                                  ),
-                                ));
-                          },
-                          icon: const Icon(Icons.remove_red_eye,
-                              color: Colors.grey, size: 30))
-                    ],
-                  ),
-                ],
-              );
+              return _imageCardAndIcons(thisCollection, card);
             } else {
-              return SizedBox(
-                height: MediaQuery.of(context).size.height * 0.15,
-                width: MediaQuery.of(context).size.width * 0.10,
-                child: Center(
-                  child: Hero(
-                    tag: card['id'],
-                    child: Opacity(
-                      opacity: 0.5,
-                      child: FadeInImage(
-                        placeholder: const NetworkImage(
-                            'https://api.myl.cl/static/loading_02_f_opt.gif'),
-                        image: NetworkImage(
-                            'https://api.myl.cl/static/cards/${card['ed_edid']}/${card['edid']}.png'),
-                      ),
-                    ),
-                  ),
-                ),
-              );
+              return _imageCardAndIcons([], card);
             }
           }),
+    );
+  }
+
+  Widget _imageCardAndIcons(thisCollection, card) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.16,
+          width: MediaQuery.of(context).size.width * 0.16,
+          child: Center(
+            child: Hero(
+              tag: card['id'],
+              child: Opacity(
+                opacity: thisCollection.isNotEmpty ? 1 : 0.5,
+                child: FadeInImage(
+                  placeholder: const NetworkImage(
+                      'https://api.myl.cl/static/loading_02_f_opt.gif'),
+                  image: NetworkImage(
+                      'https://api.myl.cl/static/cards/${card['ed_edid']}/${card['edid']}.png'),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+                onPressed: () {
+                  CardsHandler cardsHandler = CardsHandler();
+                  thisCollection.isNotEmpty
+                      ? cardsHandler.deleteCard(card['id'])
+                      : cardsHandler.addCard(card['id'], widget.title);
+                },
+                icon: thisCollection.isNotEmpty
+                    ? const Icon(Icons.bookmark_added,
+                        color: Colors.green, size: 30)
+                    : const Icon(
+                        Icons.bookmark_add_outlined,
+                        color: Colors.grey,
+                        size: 30,
+                      )),
+            IconButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CardDetailPage(
+                          card: card,
+                        ),
+                      ));
+                },
+                icon: const Icon(Icons.remove_red_eye,
+                    color: Colors.grey, size: 30))
+          ],
+        ),
+      ],
     );
   }
 }
