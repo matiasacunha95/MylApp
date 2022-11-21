@@ -1,2 +1,3 @@
 # MylApp
-MyL PB collector
+
+Miths and legends card game collector
