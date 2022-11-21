@@ -1,3 +1,3 @@
 # MylApp
 
-Miths and legends card game collector
+Myths and legends card game collector
